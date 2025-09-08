@@ -9,6 +9,7 @@ import 'screens/profile_screen.dart';
 import 'widgets/custom_bottom_nav_bar.dart';
 
 Future main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Ensures binding for async/plugins
   await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
