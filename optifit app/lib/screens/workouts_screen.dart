@@ -536,29 +536,12 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
   }
 
   Future<void> _loadWorkoutHistory() async {
-    try {
-      setState(() {
-        _loadingHistory = true;
-      });
-      final historyService = WorkoutHistoryService();
-      await historyService.init();
-      setState(() {
-        _completedWorkouts = historyService
-            .getWorkoutHistory()
-            .reversed
-            .toList();
-        _loadingHistory = false;
-      });
-    } catch (e) {
-      setState(() {
-        _loadingHistory = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Error loading history: $e")));
-      }
-    }
+    final historyService = WorkoutHistoryService();
+    await historyService.init();
+    setState(() {
+      _completedWorkouts = historyService.getWorkoutHistory().reversed.toList();
+      _loadingHistory = false;
+    });
   }
 
   // Add this method to be called after a workout is saved
@@ -604,268 +587,272 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
         ),
       ),
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _loadWorkoutHistory,
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
+        child: SingleChildScrollView(
+          child: Padding(
             padding: AppTheme.paddingLG,
-            children: [
-              // Title and filter icon
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Workouts',
-                      style: Theme.of(context).textTheme.displayMedium
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              // Collapsible All Workouts section
-              GestureDetector(
-                onTap: () =>
-                    setState(() => allWorkoutsExpanded = !allWorkoutsExpanded),
-                child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title and filter icon
+                Row(
                   children: [
-                    Text(
-                      'All Workouts',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
+                    Expanded(
+                      child: Text(
+                        'Workouts',
+                        style: Theme.of(context).textTheme.displayMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      allWorkoutsExpanded
-                          ? Icons.expand_less
-                          : Icons.expand_more,
-                      color: AppTheme.primary,
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 350),
-                curve: Curves.easeInOut,
-                child: allWorkoutsExpanded
-                    ? Column(
-                        children: [
-                          SizedBox(
-                            height: 40,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: categories.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 12),
-                              itemBuilder: (context, i) {
-                                final isSelected = i == selectedCategory;
-                                return ChoiceChip(
-                                  label: Text(
-                                    categories[i],
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? Colors.white
-                                          : AppTheme.secondary,
-                                      fontWeight: FontWeight.w500,
+                const SizedBox(height: 24),
+                // Collapsible All Workouts section
+                GestureDetector(
+                  onTap: () => setState(
+                    () => allWorkoutsExpanded = !allWorkoutsExpanded,
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        'All Workouts',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        allWorkoutsExpanded
+                            ? Icons.expand_less
+                            : Icons.expand_more,
+                        color: AppTheme.primary,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.easeInOut,
+                  child: allWorkoutsExpanded
+                      ? Column(
+                          children: [
+                            SizedBox(
+                              height: 40,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: categories.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(width: 12),
+                                itemBuilder: (context, i) {
+                                  final isSelected = i == selectedCategory;
+                                  return ChoiceChip(
+                                    label: Text(
+                                      categories[i],
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppTheme.secondary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                  ),
-                                  selected: isSelected,
-                                  onSelected: (_) =>
-                                      setState(() => selectedCategory = i),
-                                  backgroundColor: AppTheme.chipBackground,
-                                  selectedColor: AppTheme.primary,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppTheme.chipRadius,
+                                    selected: isSelected,
+                                    onSelected: (_) =>
+                                        setState(() => selectedCategory = i),
+                                    backgroundColor: AppTheme.chipBackground,
+                                    selectedColor: AppTheme.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        AppTheme.chipRadius,
+                                      ),
                                     ),
-                                  ),
-                                  labelPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 2,
-                                  ),
+                                    labelPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 2,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 350),
+                              switchInCurve: Curves.easeOut,
+                              switchOutCurve: Curves.easeIn,
+                              transitionBuilder: (child, animation) {
+                                return SizeTransition(
+                                  sizeFactor: animation,
+                                  axis: Axis.vertical,
+                                  child: child,
                                 );
                               },
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 350),
-                            switchInCurve: Curves.easeOut,
-                            switchOutCurve: Curves.easeIn,
-                            transitionBuilder: (child, animation) {
-                              return SizeTransition(
-                                sizeFactor: animation,
-                                axis: Axis.vertical,
-                                child: child,
-                              );
-                            },
-                            child: Column(
-                              key: ValueKey(filteredWorkouts.length),
-                              children: [
-                                ...filteredWorkouts.map(
-                                  (workout) => _WorkoutCard(
-                                    key: ValueKey(workout['name']),
-                                    workout: workout,
-                                    onStartWorkout: () async {
-                                      final workoutPlan = _getWorkoutPlan(
-                                        workout['name'],
-                                      );
-                                      final result = await Navigator.of(context)
-                                          .push(
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  WorkoutExecutionScreen(
-                                                    workoutPlan: workoutPlan,
-                                                    onWorkoutSaved:
-                                                        _onWorkoutSaved,
-                                                  ),
-                                            ),
-                                          );
-                                      if (result == true) {
-                                        _onWorkoutSaved();
-                                      }
-                                    },
+                              child: Column(
+                                key: ValueKey(filteredWorkouts.length),
+                                children: [
+                                  ...filteredWorkouts.map(
+                                    (workout) => _WorkoutCard(
+                                      key: ValueKey(workout['name']),
+                                      workout: workout,
+                                      onStartWorkout: () async {
+                                        final workoutPlan = _getWorkoutPlan(
+                                          workout['name'],
+                                        );
+                                        final result =
+                                            await Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    WorkoutExecutionScreen(
+                                                      workoutPlan: workoutPlan,
+                                                      onWorkoutSaved:
+                                                          _onWorkoutSaved,
+                                                    ),
+                                              ),
+                                            );
+                                        if (result == true) {
+                                          _onWorkoutSaved();
+                                        }
+                                      },
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
+                          ],
+                        )
+                      : const SizedBox.shrink(),
+                ),
+                const SizedBox(height: 32),
+                // Your Workouts section
+                Text(
+                  'Your Workouts',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 8),
+                if (completedWorkouts.isNotEmpty)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const StartWorkoutScreen(),
                           ),
-                        ],
-                      )
-                    : const SizedBox.shrink(),
-              ),
-              const SizedBox(height: 32),
-              // Your Workouts section
-              Text(
-                'Your Workouts',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 8),
-              if (completedWorkouts.isNotEmpty)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const StartWorkoutScreen(),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Start Working Out'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
-                      foregroundColor: Colors.white,
-                      textStyle: const TextStyle(fontWeight: FontWeight.w600),
-                      minimumSize: const Size(0, 40),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppTheme.buttonRadius,
+                        );
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Start Working Out'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: Colors.white,
+                        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                        minimumSize: const Size(0, 40),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.buttonRadius,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              const SizedBox(height: 16),
-              if (_loadingHistory)
-                const Center(child: CircularProgressIndicator())
-              else if (completedWorkouts.isEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: AppTheme.cardPadding,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface,
-                    borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-                    border: Border.all(color: AppTheme.divider),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(Icons.history, color: AppTheme.textSubtle, size: 48),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No workouts completed yet',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Your completed workouts will appear here',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textSecondary,
+                const SizedBox(height: 16),
+                if (_loadingHistory)
+                  Center(child: CircularProgressIndicator())
+                else if (completedWorkouts.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: AppTheme.cardPadding,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface,
+                      borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+                      border: Border.all(color: AppTheme.divider),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.history,
+                          color: AppTheme.textSubtle,
+                          size: 48,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => StartWorkoutScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.fitness_center),
-                        label: const Text('Start Workout'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primary,
-                          foregroundColor: Colors.white,
-                          textStyle: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                          ),
-                          minimumSize: const Size(0, 48),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              AppTheme.buttonRadius,
-                            ),
-                          ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No workouts completed yet',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                Column(
-                  children: completedWorkouts
-                      .map(
-                        (session) => _CompletedWorkoutCard(
-                          session: session,
-                          onDelete: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Delete Workout'),
-                                content: const Text(
-                                  'Are you sure you want to delete this workout from your history?',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(false),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(true),
-                                    child: const Text('Delete'),
-                                  ),
-                                ],
+                        const SizedBox(height: 8),
+                        Text(
+                          'Your completed workouts will appear here',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppTheme.textSecondary),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => StartWorkoutScreen(),
                               ),
                             );
-                            if (confirm == true) {
-                              await _deleteWorkout(session);
-                            }
                           },
+                          icon: Icon(Icons.fitness_center),
+                          label: Text('Start Workout'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primary,
+                            foregroundColor: Colors.white,
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            minimumSize: const Size(0, 48),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.buttonRadius,
+                              ),
+                            ),
+                          ),
                         ),
-                      )
-                      .toList(),
-                ),
-              const SizedBox(height: 24),
-            ],
+                      ],
+                    ),
+                  )
+                else
+                  Column(
+                    children: completedWorkouts
+                        .map(
+                          (session) => _CompletedWorkoutCard(
+                            session: session,
+                            onDelete: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Delete Workout'),
+                                  content: const Text(
+                                    'Are you sure you want to delete this workout from your history?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                await _deleteWorkout(session);
+                              }
+                            },
+                          ),
+                        )
+                        .toList(),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1032,7 +1019,7 @@ class _WorkoutCard extends StatelessWidget {
                         color: AppTheme.primary,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Start',
                         style: TextStyle(
                           color: Colors.white,
